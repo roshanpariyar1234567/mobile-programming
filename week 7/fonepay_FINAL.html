@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fonepay - Complete Payment Solution</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --purple: #5B3BFF; --purple-light: #7B5FFF; --purple-dark: #3D22D6;
+  --dark: #0D1333; --bg: #F2EEFF; --white: #FFFFFF;
+  --green: #16A34A; --red: #DC143C; --orange: #FF8A00;
+  --blue: #2563EB; --teal: #00BFA5; --gray: #9CA3AF;
+  --gray-light: #F7F8FA; --gray-mid: #E5E7EB; --text: #0D1333;
+  --card-shadow: 0 4px 24px rgba(91,59,255,0.12);
+}
+body { font-family: 'Poppins', sans-serif; background: #EDEAF8; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 24px 16px; }
+.phone-frame { width: 390px; min-height: 844px; background: var(--bg); border-radius: 44px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.25); position: relative; }
+.status-bar { background: var(--dark); color: white; padding: 12px 24px 8px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; }
+.screen { display: none; flex-direction: column; min-height: 844px; }
+.screen.active { display: flex; }
+
+/* Firebase status */
+#fb-status { margin: 8px 16px; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.fb-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* Splash */
+#screen-splash { background: linear-gradient(135deg, var(--purple-dark), var(--purple)); justify-content: center; align-items: center; }
+.splash-logo { text-align: center; }
+.splash-logo h1 { font-size: 42px; font-weight: 700; color: white; }
+.splash-logo h1 span { color: #FFD700; }
+.splash-logo p { color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 8px; }
+.splash-btn { margin-top: 60px; background: white; color: var(--purple); border: none; padding: 16px 48px; border-radius: 30px; font-size: 16px; font-weight: 600; cursor: pointer; }
+
+/* Nav */
+.nav-header { background: var(--dark); color: white; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+.nav-header h2 { font-size: 18px; font-weight: 600; }
+.nav-header h2 span { color: #FFD700; }
+.bottom-nav { background: white; display: flex; justify-content: space-around; padding: 12px 0 20px; border-top: 1px solid var(--gray-mid); margin-top: auto; }
+.nav-btn { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; color: var(--gray); font-size: 10px; font-weight: 500; padding: 4px 12px; border-radius: 12px; transition: all 0.2s; }
+.nav-btn.active { color: var(--purple); }
+.nav-btn svg { width: 22px; height: 22px; }
+
+/* Home */
+.balance-card { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); margin: 16px; border-radius: 20px; padding: 20px; color: white; box-shadow: var(--card-shadow); }
+.balance-label { font-size: 12px; opacity: 0.8; margin-bottom: 6px; }
+.balance-amount { font-size: 32px; font-weight: 700; margin-bottom: 16px; }
+.balance-actions { display: flex; gap: 10px; }
+.bal-btn { flex: 1; background: rgba(255,255,255,0.15); border: none; color: white; padding: 10px; border-radius: 12px; font-size: 12px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.section-title { font-size: 16px; font-weight: 600; color: var(--text); padding: 16px 16px 10px; display: flex; justify-content: space-between; }
+.section-title a { font-size: 12px; color: var(--purple); text-decoration: none; cursor: pointer; }
+.quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0 16px; }
+.quick-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+.quick-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.quick-item span { font-size: 10px; color: var(--text); text-align: center; font-weight: 500; }
+.tx-list { padding: 0 16px; flex: 1; overflow-y: auto; }
+.tx-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--gray-mid); }
+.tx-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.tx-info { flex: 1; }
+.tx-name { font-size: 14px; font-weight: 500; color: var(--text); }
+.tx-type { font-size: 11px; color: var(--gray); }
+.tx-amount { font-size: 14px; font-weight: 600; }
+.tx-amount.debit { color: var(--red); }
+.tx-amount.credit { color: var(--green); }
+.tx-date { font-size: 10px; color: var(--gray); }
+
+/* Send Money */
+.send-container { padding: 16px; flex: 1; overflow-y: auto; }
+.contacts-row { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; }
+.contact-chip { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; min-width: 60px; }
+.avatar { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; color: white; flex-shrink: 0; }
+.contact-chip span { font-size: 10px; color: var(--text); text-align: center; }
+.contact-list-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: white; border-radius: 14px; margin-bottom: 8px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+.contact-list-item:hover, .contact-list-item.selected { border-color: var(--purple); background: #F5F0FF; }
+.contact-info { flex: 1; }
+.contact-name { font-size: 14px; font-weight: 500; color: var(--text); }
+.contact-num { font-size: 12px; color: var(--gray); }
+
+/* Amount modal */
+.modal-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: flex-end; z-index: 100; }
+.modal-overlay.show { display: flex; }
+.modal-sheet { background: white; border-radius: 24px 24px 0 0; padding: 24px; width: 100%; }
+.modal-title { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.modal-sub { font-size: 13px; color: var(--gray); margin-bottom: 20px; }
+.amount-input { width: 100%; border: 2px solid var(--gray-mid); border-radius: 14px; padding: 16px; font-size: 28px; font-weight: 700; text-align: center; outline: none; font-family: 'Poppins', sans-serif; margin-bottom: 16px; }
+.amount-input:focus { border-color: var(--purple); }
+.send-confirm-btn { width: 100%; background: var(--purple); color: white; border: none; padding: 16px; border-radius: 14px; font-size: 16px; font-weight: 600; cursor: pointer; }
+.cancel-btn { width: 100%; background: none; border: none; color: var(--gray); padding: 12px; font-size: 14px; cursor: pointer; margin-top: 8px; }
+
+/* History */
+.history-filters { display: flex; gap: 8px; padding: 0 16px 12px; overflow-x: auto; }
+.filter-chip { border: 1px solid var(--gray-mid); background: white; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.filter-chip.active { background: var(--purple); color: white; border-color: var(--purple); }
+
+/* Profile */
+.profile-header { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); padding: 30px 20px 20px; color: white; text-align: center; }
+.profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; margin: 0 auto 12px; }
+.profile-name { font-size: 20px; font-weight: 600; }
+.profile-phone { font-size: 14px; opacity: 0.8; }
+.profile-menu { padding: 16px; }
+.menu-item-row { display: flex; align-items: center; gap: 14px; padding: 14px; background: white; border-radius: 14px; margin-bottom: 8px; cursor: pointer; }
+.menu-item-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.menu-item-text { flex: 1; font-size: 14px; font-weight: 500; color: var(--text); }
+.menu-arrow { color: var(--gray); font-size: 18px; }
+
+/* Success toast */
+.toast { position: absolute; top: 80px; left: 20px; right: 20px; background: var(--green); color: white; padding: 14px 16px; border-radius: 14px; font-size: 14px; font-weight: 500; text-align: center; z-index: 200; display: none; }
+.toast.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="status-bar">
+    <span>9:41</span>
+    <span>▲▲▲ 📶 🔋</span>
+  </div>
+
+  <!-- Firebase Status -->
+  <div id="fb-status" style="background:#FEE2E2; color:#DC143C;">
+    <div class="fb-dot" style="background:#DC143C;"></div>
+    Connecting to Firebase...
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">✅ Transaction saved!</div>
+
+  <!-- SPLASH SCREEN -->
+  <div class="screen active" id="screen-splash">
+    <div class="splash-logo">
+      <h1>fone<span>pay</span></h1>
+      <p>Nepal's Trusted Digital Wallet</p>
+      <button class="splash-btn" onclick="showScreen('home')">Get Started</button>
+    </div>
+  </div>
+
+  <!-- HOME SCREEN -->
+  <div class="screen" id="screen-home">
+    <div class="nav-header">
+      <span>☰</span>
+      <h2>fone<span>pay</span></h2>
+      <span>🔔</span>
+    </div>
+    <div class="balance-card">
+      <div class="balance-label">💳 Total Balance 👁</div>
+      <div class="balance-amount" id="balance-display">NPR 5,000.00</div>
+      <div class="balance-actions">
+        <button class="bal-btn" onclick="showScreen('send')">➕ Add Money</button>
+        <button class="bal-btn" onclick="showScreen('send')">📤 Send Money</button>
+        <button class="bal-btn" onclick="showScreen('history')">🕒 History</button>
+      </div>
+    </div>
+    <div class="section-title">Quick Actions</div>
+    <div class="quick-grid">
+      <div class="quick-item" onclick="showScreen('send')"><div class="quick-icon" style="background:#EDE9FF;">📤</div><span>Send Money</span></div>
+      <div class="quick-item" onclick="addMoney()"><div class="quick-icon" style="background:#E6F9F1;">📥</div><span>Receive Money</span></div>
+      <div class="quick-item" onclick="topUp()"><div class="quick-icon" style="background:#FFF8E1;">📱</div><span>Top Up</span></div>
+      <div class="quick-item" onclick="billPay()"><div class="quick-icon" style="background:#FFF3E0;">📄</div><span>Bill Payments</span></div>
+      <div class="quick-item" onclick="topUp()"><div class="quick-icon" style="background:#E3F2FD;">📲</div><span>Mobile Recharge</span></div>
+      <div class="quick-item" onclick="addMoney()"><div class="quick-icon" style="background:#E8F5E9;">🏦</div><span>Bank Transfer</span></div>
+      <div class="quick-item" onclick="topUp()"><div class="quick-icon" style="background:#F3E5F5;">📷</div><span>QR Scan</span></div>
+      <div class="quick-item"><div class="quick-icon" style="background:#ECEFF1;">•••</div><span>More</span></div>
+    </div>
+    <div class="section-title">Recent Transactions <a onclick="showScreen('history')">View All →</a></div>
+    <div class="tx-list" id="home-tx-list"></div>
+    <div class="bottom-nav">
+      <button class="nav-btn active" onclick="showScreen('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home</button>
+      <button class="nav-btn" onclick="showScreen('send')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send</button>
+      <button class="nav-btn" onclick="showScreen('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>History</button>
+      <button class="nav-btn" onclick="showScreen('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+    </div>
+  </div>
+
+  <!-- SEND MONEY SCREEN -->
+  <div class="screen" id="screen-send">
+    <div class="nav-header">
+      <span onclick="showScreen('home')" style="cursor:pointer;">← </span>
+      <h2>Send Money</h2>
+      <span></span>
+    </div>
+    <div class="send-container">
+      <div class="section-title" style="padding:0 0 10px;">Frequent Contacts</div>
+      <div class="contacts-row">
+        <div class="contact-chip" onclick="selectContact('Sanoop Shrestha','98XXXXXXXX','#5B3BFF')"><div class="avatar" style="background:#5B3BFF;">SS</div><span>Sanoop</span></div>
+        <div class="contact-chip" onclick="selectContact('Ram Bahadur','97XXXXXXXX','#16A34A')"><div class="avatar" style="background:#16A34A;">RB</div><span>Ram</span></div>
+        <div class="contact-chip" onclick="selectContact('Sita Devi','96XXXXXXXX','#DC143C')"><div class="avatar" style="background:#DC143C;">SD</div><span>Sita</span></div>
+        <div class="contact-chip" onclick="selectContact('Hari Prasad','95XXXXXXXX','#FF8A00')"><div class="avatar" style="background:#FF8A00;">HP</div><span>Hari</span></div>
+        <div class="contact-chip" onclick="selectContact('Anita KC','94XXXXXXXX','#00BFA5')"><div class="avatar" style="background:#00BFA5;">AK</div><span>Anita</span></div>
+      </div>
+      <div class="section-title" style="padding:16px 0 10px;">All Contacts</div>
+      <div id="contact-list">
+        <div class="contact-list-item" onclick="selectContact('Sanoop Shrestha','98XXXXXXXX','#5B3BFF')"><div class="avatar" style="background:#5B3BFF;width:42px;height:42px;font-size:14px;">SS</div><div class="contact-info"><div class="contact-name">Sanoop Shrestha</div><div class="contact-num">98XXXXXXXX</div></div></div>
+        <div class="contact-list-item" onclick="selectContact('Ram Bahadur','97XXXXXXXX','#16A34A')"><div class="avatar" style="background:#16A34A;width:42px;height:42px;font-size:14px;">RB</div><div class="contact-info"><div class="contact-name">Ram Bahadur</div><div class="contact-num">97XXXXXXXX</div></div></div>
+        <div class="contact-list-item" onclick="selectContact('Sita Devi','96XXXXXXXX','#DC143C')"><div class="avatar" style="background:#DC143C;width:42px;height:42px;font-size:14px;">SD</div><div class="contact-info"><div class="contact-name">Sita Devi</div><div class="contact-num">96XXXXXXXX</div></div></div>
+        <div class="contact-list-item" onclick="selectContact('Hari Prasad','95XXXXXXXX','#FF8A00')"><div class="avatar" style="background:#FF8A00;width:42px;height:42px;font-size:14px;">HP</div><div class="contact-info"><div class="contact-name">Hari Prasad</div><div class="contact-num">95XXXXXXXX</div></div></div>
+        <div class="contact-list-item" onclick="selectContact('Anita KC','94XXXXXXXX','#00BFA5')"><div class="avatar" style="background:#00BFA5;width:42px;height:42px;font-size:14px;">AK</div><div class="contact-info"><div class="contact-name">Anita KC</div><div class="contact-num">94XXXXXXXX</div></div></div>
+      </div>
+    </div>
+    <!-- Amount Modal -->
+    <div class="modal-overlay" id="send-modal">
+      <div class="modal-sheet">
+        <div class="modal-title">Send to <span id="modal-name">-</span></div>
+        <div class="modal-sub" id="modal-num">-</div>
+        <input class="amount-input" type="number" id="amount-input" placeholder="NPR 0" min="1">
+        <button class="send-confirm-btn" onclick="confirmSend()">Send Money</button>
+        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-btn" onclick="showScreen('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home</button>
+      <button class="nav-btn active" onclick="showScreen('send')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send</button>
+      <button class="nav-btn" onclick="showScreen('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>History</button>
+      <button class="nav-btn" onclick="showScreen('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+    </div>
+  </div>
+
+  <!-- HISTORY SCREEN -->
+  <div class="screen" id="screen-history">
+    <div class="nav-header">
+      <span onclick="showScreen('home')" style="cursor:pointer;">←</span>
+      <h2>Transaction History</h2>
+      <span></span>
+    </div>
+    <div style="padding:12px 16px 0;">
+      <div class="history-filters">
+        <button class="filter-chip active" onclick="filterTx('all',this)">All</button>
+        <button class="filter-chip" onclick="filterTx('Sent Money',this)">Sent</button>
+        <button class="filter-chip" onclick="filterTx('Received',this)">Received</button>
+        <button class="filter-chip" onclick="filterTx('Top Up',this)">Top Up</button>
+        <button class="filter-chip" onclick="filterTx('Bill Pay',this)">Bill Pay</button>
+      </div>
+    </div>
+    <div class="tx-list" id="history-tx-list" style="flex:1; overflow-y:auto;"></div>
+    <div class="bottom-nav">
+      <button class="nav-btn" onclick="showScreen('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home</button>
+      <button class="nav-btn" onclick="showScreen('send')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send</button>
+      <button class="nav-btn active" onclick="showScreen('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>History</button>
+      <button class="nav-btn" onclick="showScreen('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+    </div>
+  </div>
+
+  <!-- PROFILE SCREEN -->
+  <div class="screen" id="screen-profile">
+    <div class="profile-header">
+      <div class="profile-avatar">RB</div>
+      <div class="profile-name">Roshan Bhandari</div>
+      <div class="profile-phone">+977-98XXXXXXXX</div>
+    </div>
+    <div class="profile-menu">
+      <div class="menu-item-row"><div class="menu-item-icon" style="background:#EDE9FF;">👤</div><div class="menu-item-text">My Profile</div><span class="menu-arrow">›</span></div>
+      <div class="menu-item-row"><div class="menu-item-icon" style="background:#E6F9F1;">🔒</div><div class="menu-item-text">Security & PIN</div><span class="menu-arrow">›</span></div>
+      <div class="menu-item-row"><div class="menu-item-icon" style="background:#FFF8E1;">🔔</div><div class="menu-item-text">Notifications</div><span class="menu-arrow">›</span></div>
+      <div class="menu-item-row"><div class="menu-item-icon" style="background:#E3F2FD;">❓</div><div class="menu-item-text">Help & Support</div><span class="menu-arrow">›</span></div>
+      <div class="menu-item-row" onclick="showScreen('splash')"><div class="menu-item-icon" style="background:#FFE4E4;">🚪</div><div class="menu-item-text" style="color:#DC143C;">Logout</div><span class="menu-arrow">›</span></div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-btn" onclick="showScreen('home')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>Home</button>
+      <button class="nav-btn" onclick="showScreen('send')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Send</button>
+      <button class="nav-btn" onclick="showScreen('history')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>History</button>
+      <button class="nav-btn active" onclick="showScreen('profile')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBOydScNewnw2qFBo74gLygnZaYPcXrjFY",
+  authDomain: "contactus-65a22.firebaseapp.com",
+  databaseURL: "https://contactus-65a22-default-rtdb.firebaseio.com",
+  projectId: "contactus-65a22",
+  storageBucket: "contactus-65a22.firebasestorage.app",
+  messagingSenderId: "586067698616",
+  appId: "1:586067698616:web:e89f3b8e1270b83873e54d"
+};
+
+try {
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  // Update status to connected
+  const statusEl = document.getElementById('fb-status');
+  statusEl.style.background = '#DCFCE7';
+  statusEl.style.color = '#16A34A';
+  statusEl.innerHTML = '<div class="fb-dot" style="background:#16A34A;width:8px;height:8px;border-radius:50%;"></div> Firebase Connected';
+
+  // Make Firebase functions global
+  window._db = db;
+  window._ref = ref;
+  window._push = push;
+  window._onValue = onValue;
+  window._fbReady = true;
+
+  // Load existing transactions
+  const txRef = ref(db, 'fonepay_transactions');
+  onValue(txRef, (snapshot) => {
+    const data = snapshot.val();
+    window._transactions = [];
+    if (data) {
+      Object.values(data).forEach(tx => window._transactions.push(tx));
+      window._transactions.sort((a,b) => b.timestamp - a.timestamp);
+    }
+    renderTransactions();
+  });
+
+} catch(e) {
+  console.error('Firebase error:', e);
+  window._fbReady = false;
+}
+</script>
+
+<script>
+// Default transactions
+window._transactions = [
+  { id: 1, name: 'Sanoop Shrestha', type: 'Sent Money', amount: -1000, timestamp: Date.now() - 86400000, icon: '📤', color: '#5B3BFF' },
+  { id: 2, name: 'Ncell Recharge', type: 'Top Up', amount: -200, timestamp: Date.now() - 172800000, icon: '📱', color: '#FF8A00' },
+  { id: 3, name: 'Ram Bahadur', type: 'Received', amount: +500, timestamp: Date.now() - 259200000, icon: '📥', color: '#16A34A' },
+];
+window._balance = 5000;
+window._fbReady = false;
+window._selectedContact = null;
+window._currentFilter = 'all';
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+window.showScreen = showScreen;
+
+function renderTransactions() {
+  const list = window._transactions;
+  const filter = window._currentFilter;
+  const filtered = filter === 'all' ? list : list.filter(t => t.type === filter);
+
+  const homeEl = document.getElementById('home-tx-list');
+  const histEl = document.getElementById('history-tx-list');
+
+  function txHTML(t, max) {
+    const items = max ? t.slice(0, max) : t;
+    return items.map(tx => {
+      const date = new Date(tx.timestamp).toLocaleString('en-US', { month:'short', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const isDebit = tx.amount < 0;
+      return `<div class="tx-item">
+        <div class="tx-icon" style="background:${tx.color}22;">${tx.icon}</div>
+        <div class="tx-info"><div class="tx-name">${tx.name}</div><div class="tx-type">${tx.type}</div></div>
+        <div style="text-align:right;"><div class="tx-amount ${isDebit?'debit':'credit'}">${isDebit?'-':'+'} NPR ${Math.abs(tx.amount).toLocaleString()}.00</div><div class="tx-date">${date}</div></div>
+      </div>`;
+    }).join('');
+  }
+
+  if (homeEl) homeEl.innerHTML = txHTML(list, 5);
+  if (histEl) histEl.innerHTML = txHTML(filtered);
+
+  // Update balance display
+  document.getElementById('balance-display').textContent = 'NPR ' + window._balance.toLocaleString() + '.00';
+}
+window.renderTransactions = renderTransactions;
+
+function selectContact(name, num, color) {
+  window._selectedContact = { name, num, color };
+  document.getElementById('modal-name').textContent = name;
+  document.getElementById('modal-num').textContent = num;
+  document.getElementById('amount-input').value = '';
+  document.getElementById('send-modal').classList.add('show');
+}
+window.selectContact = selectContact;
+
+function closeModal() {
+  document.getElementById('send-modal').classList.remove('show');
+}
+window.closeModal = closeModal;
+
+function confirmSend() {
+  const amount = parseInt(document.getElementById('amount-input').value);
+  if (!amount || amount <= 0) { alert('Please enter a valid amount'); return; }
+  if (amount > window._balance) { alert('Insufficient balance!'); return; }
+
+  const contact = window._selectedContact;
+  const tx = {
+    id: Date.now(),
+    name: contact.name,
+    phone: contact.num,
+    type: 'Sent Money',
+    amount: -amount,
+    timestamp: Date.now(),
+    icon: '📤',
+    color: contact.color
+  };
+
+  // Save to Firebase
+  if (window._fbReady && window._db) {
+    const txRef = window._ref(window._db, 'fonepay_transactions');
+    window._push(txRef, tx).then(() => {
+      console.log('Saved to Firebase!');
+    }).catch(e => console.error('Firebase save error:', e));
+  }
+
+  // Update local state
+  window._balance -= amount;
+  window._transactions.unshift(tx);
+  closeModal();
+  renderTransactions();
+
+  // Show toast
+  const toast = document.getElementById('toast');
+  toast.textContent = '✅ NPR ' + amount.toLocaleString() + ' sent to ' + contact.name + '!';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+
+  showScreen('home');
+}
+window.confirmSend = confirmSend;
+
+function addMoney() {
+  const tx = { id: Date.now(), name: 'Bank Transfer', type: 'Received', amount: +1000, timestamp: Date.now(), icon: '📥', color: '#16A34A' };
+  if (window._fbReady && window._db) {
+    window._push(window._ref(window._db, 'fonepay_transactions'), tx);
+  }
+  window._balance += 1000;
+  window._transactions.unshift(tx);
+  renderTransactions();
+  const toast = document.getElementById('toast');
+  toast.textContent = '✅ NPR 1,000 received!';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+window.addMoney = addMoney;
+
+function topUp() {
+  const tx = { id: Date.now(), name: 'Ncell Recharge', type: 'Top Up', amount: -100, timestamp: Date.now(), icon: '📱', color: '#FF8A00' };
+  if (window._fbReady && window._db) {
+    window._push(window._ref(window._db, 'fonepay_transactions'), tx);
+  }
+  window._balance -= 100;
+  window._transactions.unshift(tx);
+  renderTransactions();
+  const toast = document.getElementById('toast');
+  toast.textContent = '✅ Ncell recharged NPR 100!';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+window.topUp = topUp;
+
+function billPay() {
+  const tx = { id: Date.now(), name: 'NEA Bill', type: 'Bill Pay', amount: -500, timestamp: Date.now(), icon: '💡', color: '#2563EB' };
+  if (window._fbReady && window._db) {
+    window._push(window._ref(window._db, 'fonepay_transactions'), tx);
+  }
+  window._balance -= 500;
+  window._transactions.unshift(tx);
+  renderTransactions();
+  const toast = document.getElementById('toast');
+  toast.textContent = '✅ NEA Bill paid NPR 500!';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+window.billPay = billPay;
+
+function filterTx(type, btn) {
+  window._currentFilter = type;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderTransactions();
+}
+window.filterTx = filterTx;
+
+renderTransactions();
+</script>
+</body>
+</html>
